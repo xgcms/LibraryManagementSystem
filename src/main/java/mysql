@@ -1,0 +1,108 @@
+DELIMITER // #将语句结束符号设置为双斜线，以下遇到分号不再直接执行该语句。
+#如果存储过程sp_addSchool存在，就删除它
+DROP PROCEDURE IF EXISTS sp_addLibrarian// #执行双斜线前面的语句
+CREATE PROCEDURE sp_addLibrarian( #开始定义存储过程，从本行到第17行为一整个SQL语句
+    IN name VARCHAR(255),  #输入型参数
+    no VARCHAR(255),  #输入型参数
+    telNumber VARCHAR(255),  #输入型参数
+    OUT id INT  #输出型参数，可以供调用者使用
+)
+BEGIN  #开始定义存储过程主体
+    #根据输入型参数内容，插入一个school记录
+    INSERT INTO school (name,no,telNumber)
+    VALUES(name,no,telNumber);
+    #将最后一个自动生成的Id赋值给输出型参数id
+    SELECT LAST_INSERT_ID() INTO id;  #不执行分号前面的语句
+END//  #执行双斜线前面的语句，完成存储过程的定义
+
+DELIMITER ; #将语句结束符号设置为分号，恢复原来的状态
+
+#要保留一个空行，以确保执行最后一条语句：DELIMITER ;
+
+SHOW PROCEDURE STATUS LIKE 'sp%' \G;
+
+create table book
+(
+    id              bigint auto_increment
+        primary key,
+    address         varchar(255) not null,
+    name            varchar(255) not null,
+    no              varchar(255) not null,
+    press           varchar(255) not null,
+    total           varchar(255) not null,
+    writer          varchar(255) not null,
+    borrowed_number varchar(255) not null
+);
+
+create table borrowing
+(
+    id        bigint auto_increment
+        primary key,
+    date      datetime not null,
+    book_id   bigint   not null,
+    reader_id bigint   not null,
+    constraint borrowing_ibfk_1
+        foreign key (reader_id) references reader (id),
+    constraint borrowing_ibfk_2
+        foreign key (book_id) references book (id)
+);
+
+create index book_id
+    on borrowing (book_id);
+
+create index reader_id
+    on borrowing (reader_id);
+
+
+ create table librarian
+    (
+        id        bigint auto_increment
+            primary key,
+        name      varchar(255) not null,
+        no        varchar(255) not null,
+        telNumber varchar(255) not null
+    );
+
+create table reader
+(
+    id         bigint auto_increment
+        primary key,
+    no         varchar(255) not null,
+    age        varchar(255) not null,
+    department varchar(255) not null,
+    name       varchar(255) not null,
+    sex        varchar(255) not null,
+    telNumber  varchar(255) not null,
+    constraint reader_name_uindex
+        unique (name)
+);
+
+
+create table user_librarian
+(
+    id           bigint auto_increment
+        primary key,
+    password     varchar(255) not null,
+    username     varchar(255) not null,
+    librarian_id bigint       not null,
+    constraint user_librarian_ibfk_1
+        foreign key (librarian_id) references librarian (id)
+);
+
+create index librarian_id
+    on user_librarian (librarian_id);
+
+
+create table user_reader
+(
+    id        bigint auto_increment
+        primary key,
+    password  varchar(255) not null,
+    username  varchar(255) not null,
+    reader_id bigint       not null,
+    constraint user_reader_ibfk_1
+        foreign key (reader_id) references reader (id)
+);
+
+create index reader_id
+    on user_reader (reader_id);
